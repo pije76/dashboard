@@ -1,0 +1,778 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row mt-5">
+    <div class="col-xl-12 mb-5 mb-xl-0">
+        <div class="card shadown">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col-sm-5">
+                        <h4 class="mb-0">Product Revenue by Country, Channel, Brand, Article and Product</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+              <div class="form">
+                <div class="form-group row align-items-center">
+                  <label for="example-text-input" class="col-md-1 col-form-label form-control-label">X-axis:</label>
+                  <div class="col-md-2">
+                    <select class="form-control" id="select-x-axis">
+                      <option value="day" selected>Day</option>
+                      <option value="week">Week</option>
+                      <option value="month">Month</option>
+                    </select>
+                  </div>
+                  <div class="col-md-9">
+                    <div class="row">
+                      <div class="col-md-1">
+
+                      </div>
+                      <div class="col-md-2">
+                        <div class="custom-control custom-checkbox">
+                          <input class="custom-control-input check-box" id="checkCountry" type="checkbox" check-type="Country">
+                          <label class="custom-control-label" for="checkCountry">Country</label>
+                        </div>
+                      </div>
+
+                      <div class="col-md-2">
+                        <div class="custom-control custom-checkbox">
+                          <input class="custom-control-input check-box" id="checkChannel" type="checkbox" check-type="Channel">
+                          <label class="custom-control-label" for="checkChannel">Channel</label>
+                        </div>
+                      </div>
+
+                      <div class="col-md-2">
+                        <div class="custom-control custom-checkbox">
+                          <input class="custom-control-input check-box" id="checkBrand" type="checkbox" check-type="Brand">
+                          <label class="custom-control-label" for="checkBrand">Brand</label>
+                        </div>
+                      </div>
+
+                      <div class="col-md-2">
+                        <div class="custom-control custom-checkbox">
+                          <input class="custom-control-input check-box" id="checkArticleProduct" type="checkbox" check-type="ArticleProduct">
+                          <label class="custom-control-label" for="checkArticleProduct">Articles / Product</label>
+                        </div>
+                      </div>
+                      <div class="col-md-2">
+                        <form class="" id="radio-form">
+                          <div class="custom-control custom-radio">
+                            <input name="custom-radio" class="custom-control-input radio-input" id="radioArticle" type="radio" disabled checked value="Article">
+                            <label class="custom-control-label" for="radioArticle">Article</label>
+                          </div>
+                          <div class="custom-control custom-radio">
+                            <input name="custom-radio" class="custom-control-input radio-input" id="radioProduct" type="radio" disabled value="Product">
+                            <label class="custom-control-label" for="radioProduct">Product</label>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group row align-items-center">
+                  <label for="example-text-input" class="col-md-1 col-form-label form-control-label">Country:</label>
+                  <div class="col-md-5">
+                    <select class="selectpicker form-control" id="filterCountry" multiple data-live-search="true" disabled>
+                      <option value="DE">DE</option>
+                      <option value="UK">UK</option>
+                      <option value="FR">FR</option>
+                      <option value="ES">ES</option>
+                      <option value="IT">IT</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <label for="example-text-input" class="col-md-1 col-form-label form-control-label">Channel:</label>
+                  <div class="col-md-5">
+                    <select class="selectpicker form-control" id="filterChannel" multiple data-live-search="true" disabled>
+                        {% for channel in channels %}
+                          {% if not channel == '' %}
+                            <option value="{{ channel.channel }}">{{ channel.channel }}</option>
+                          {% endif %}
+                        {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group row align-items-center">
+
+                  <label for="example-text-input" class="col-md-1 col-form-label form-control-label">Articles:</label>
+                  <div class="col-md-5">
+                    <select class="selectpicker form-control" id="filterArticle" multiple data-live-search="true" disabled>
+                        {% for article in articles %}
+                            <option value="{{ article.article_id }}">{{ article.article_name|truncatechars:30 }}</option>
+                        {% endfor %}
+                    </select>
+                  </div>
+
+                  <label for="example-text-input" class="col-md-1 col-form-label form-control-label">Products:</label>
+                  <div class="col-md-5">
+                    <select class="selectpicker form-control" id="filterProduct" multiple data-live-search="true" disabled>
+                        {% for product in products %}
+                            <option value="{{ product.product_name }}">{{ product.product_name }}</option>
+                        {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group row align-items-center">
+                  <label for="example-text-input" class="col-md-1 col-form-label form-control-label">Brands:</label>
+                  <div class="col-md-5">
+                    <select class="selectpicker form-control" id="filterBrand" multiple data-live-search="true" disabled>
+                        <option value="Braineffect">Braineffect</option>
+                        <option value="Vitafair">Vitafair</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-1">
+                    <label for="daterange" class="col-form-label form-control-label">Date Range:</label>
+                  </div>
+                  <div class="col-md-3">
+                    <input type="text" name="daterange" id="daterange" class="form-control" style="text-align: center" />
+                  </div>
+                </div>
+                <div class="form-group row align-items-center">
+                  <div class="col-md-4">
+
+                  </div>
+                  <div class="col-md-4">
+                    <button type="button" class="btn btn-primary btn-lg btn-block" onclick="Display()">Disaply Chart</button>
+                  </div>
+                  <div class="col-md-2">
+                  </div>
+                  <div class="col-md-2">
+                    <span id="sum" class="text-danger"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="chart">
+                 <canvas id="sales-chart" class="chart-canvas"></canvas>
+              </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block js %}
+
+<script type="text/javascript">
+  var chart;
+  var start_time, end_time;
+  $(document).ready(function() {
+
+    $('#daterange').daterangepicker({
+        opens: 'left'
+      }, function(start, end, label) {
+        start_time = start.format('YYYY-MM-DD');
+        end_time = end.format('YYYY-MM-DD');
+      });
+    var Charts = (function() {
+
+      // Variable
+
+      var $toggle = $('[data-toggle="chart"]');
+      var mode = 'light'; //(themeMode) ? themeMode : 'light';
+      var fonts = {
+        base: 'Open Sans'
+      }
+
+      // Colors
+      var colors = {
+        gray: {
+          100: '#f6f9fc',
+          200: '#e9ecef',
+          300: '#dee2e6',
+          400: '#ced4da',
+          500: '#adb5bd',
+          600: '#8898aa',
+          700: '#525f7f',
+          800: '#32325d',
+          900: '#212529'
+        },
+        theme: {
+          'default': '#172b4d',
+          'primary': '#5e72e4',
+          'secondary': '#f4f5f7',
+          'info': '#11cdef',
+          'success': '#2dce89',
+          'danger': '#f5365c',
+          'warning': '#fb6340'
+        },
+        black: '#12263F',
+        white: '#FFFFFF',
+        transparent: 'transparent',
+      };
+
+
+      // Methods
+
+      // Chart.js global options
+      function chartOptions() {
+
+        // Options
+        var options = {
+          defaults: {
+            global: {
+              responsive: true,
+              maintainAspectRatio: false,
+              defaultColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
+              defaultFontColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
+              defaultFontFamily: fonts.base,
+              defaultFontSize: 13,
+              layout: {
+                padding: 0
+              },
+              legend: {
+                display: false,
+                position: 'bottom',
+                labels: {
+                  usePointStyle: true,
+                  padding: 16
+                }
+              },
+              elements: {
+                point: {
+                  radius: 0,
+                  backgroundColor: colors.theme['primary']
+                },
+                line: {
+                  tension: .4,
+                  borderWidth: 4,
+                  borderColor: colors.theme['primary'],
+                  backgroundColor: colors.transparent,
+                  borderCapStyle: 'rounded'
+                },
+                rectangle: {
+                  backgroundColor: colors.theme['warning']
+                },
+                arc: {
+                  backgroundColor: colors.theme['primary'],
+                  borderColor: (mode == 'dark') ? colors.gray[800] : colors.white,
+                  borderWidth: 4
+                }
+              },
+              tooltips: {
+                enabled: false,
+                mode: 'index',
+                intersect: false,
+                custom: function(model) {
+
+                  // Get tooltip
+                  var $tooltip = $('#chart-tooltip');
+
+                  // Create tooltip on first render
+                  if (!$tooltip.length) {
+                    $tooltip = $('<div id="chart-tooltip" class="popover bs-popover-top" role="tooltip"></div>');
+
+                    // Append to body
+                    $('body').append($tooltip);
+                  }
+
+                  // Hide if no tooltip
+                  if (model.opacity === 0) {
+                    $tooltip.css('display', 'none');
+                    return;
+                  }
+
+                  function getBody(bodyItem) {
+                    return bodyItem.lines;
+                  }
+
+                  // Fill with content
+                  if (model.body) {
+                    var titleLines = model.title || [];
+                    var bodyLines = model.body.map(getBody);
+                    var html = '';
+
+                    // Add arrow
+                    html += '<div class="arrow"></div>';
+
+                    // Add header
+                    titleLines.forEach(function(title) {
+                      html += '<h3 class="popover-header text-center">' + title + '</h3>';
+                    });
+
+                    // Add body
+                    bodyLines.forEach(function(body, i) {
+                      var colors = model.labelColors[i];
+                      var styles = 'background-color: ' + colors.backgroundColor;
+                      var indicator = '<span class="badge badge-dot"><i class="bg-primary"></i></span>';
+                      var align = (bodyLines.length > 1) ? 'justify-content-left' : 'justify-content-center';
+                      html += '<div class="popover-body d-flex align-items-center ' + align + '">' + indicator + body + '</div>';
+                    });
+
+                    $tooltip.html(html);
+                  }
+
+                  // Get tooltip position
+                  var $canvas = $(this._chart.canvas);
+
+                  var canvasWidth = $canvas.outerWidth();
+                  var canvasHeight = $canvas.outerHeight();
+
+                  var canvasTop = $canvas.offset().top;
+                  var canvasLeft = $canvas.offset().left;
+
+                  var tooltipWidth = $tooltip.outerWidth();
+                  var tooltipHeight = $tooltip.outerHeight();
+
+                  var top = canvasTop + model.caretY - tooltipHeight - 16;
+                  var left = canvasLeft + model.caretX - tooltipWidth / 2;
+
+                  // Display tooltip
+                  $tooltip.css({
+                    'top': top + 'px',
+                    'left': left + 'px',
+                    'display': 'block',
+                    'z-index': '100'
+                  });
+
+                },
+                callbacks: {
+                  label: function(item, data) {
+                    var label = data.datasets[item.datasetIndex].label || '';
+                    var yLabel = item.yLabel;
+                    var content = '';
+
+                    if (data.datasets.length > 1) {
+                      content += '<span class="badge badge-primary mr-auto">' + label + '</span>';
+                    }
+
+                    content += '<span class="popover-body-value">' + yLabel + '</span>';
+                    return content;
+                  }
+                }
+              }
+            },
+            doughnut: {
+              cutoutPercentage: 83,
+              tooltips: {
+                callbacks: {
+                  title: function(item, data) {
+                    var title = data.labels[item[0].index];
+                    return title;
+                  },
+                  label: function(item, data) {
+                    var value = data.datasets[0].data[item.index];
+                    var content = '';
+
+                    content += '<span class="popover-body-value">' + value + '</span>';
+                    return content;
+                  }
+                }
+              },
+              legendCallback: function(chart) {
+                var data = chart.data;
+                var content = '';
+
+                data.labels.forEach(function(label, index) {
+                  var bgColor = data.datasets[0].backgroundColor[index];
+
+                  content += '<span class="chart-legend-item">';
+                  content += '<i class="chart-legend-indicator" style="background-color: ' + bgColor + '"></i>';
+                  content += label;
+                  content += '</span>';
+                });
+
+                return content;
+              }
+            }
+          }
+        }
+
+        // yAxes
+        Chart.scaleService.updateScaleDefaults('linear', {
+          gridLines: {
+            borderDash: [2],
+            borderDashOffset: [2],
+            color: (mode == 'dark') ? colors.gray[900] : colors.gray[300],
+            drawBorder: false,
+            drawTicks: false,
+            lineWidth: 0,
+            zeroLineWidth: 0,
+            zeroLineColor: (mode == 'dark') ? colors.gray[900] : colors.gray[300],
+            zeroLineBorderDash: [2],
+            zeroLineBorderDashOffset: [2]
+          },
+          ticks: {
+            beginAtZero: true,
+            padding: 10,
+            callback: function(value) {
+              if (!(value % 10)) {
+                return value
+              }
+            }
+          }
+        });
+
+        // xAxes
+        Chart.scaleService.updateScaleDefaults('category', {
+          gridLines: {
+            drawBorder: false,
+            drawOnChartArea: false,
+            drawTicks: false
+          },
+          ticks: {
+            padding: 20
+          },
+          maxBarThickness: 10
+        });
+
+        return options;
+
+      }
+
+      // Parse global options
+      function parseOptions(parent, options) {
+        for (var item in options) {
+          if (typeof options[item] !== 'object') {
+            parent[item] = options[item];
+          } else {
+            parseOptions(parent[item], options[item]);
+          }
+        }
+      }
+
+      // Push options
+      function pushOptions(parent, options) {
+        for (var item in options) {
+          if (Array.isArray(options[item])) {
+            options[item].forEach(function(data) {
+              parent[item].push(data);
+            });
+          } else {
+            pushOptions(parent[item], options[item]);
+          }
+        }
+      }
+
+      // Pop options
+      function popOptions(parent, options) {
+        for (var item in options) {
+          if (Array.isArray(options[item])) {
+            options[item].forEach(function(data) {
+              parent[item].pop();
+            });
+          } else {
+            popOptions(parent[item], options[item]);
+          }
+        }
+      }
+
+      // Toggle options
+      function toggleOptions(elem) {
+        var options = elem.data('add');
+        var $target = $(elem.data('target'));
+        var $chart = $target.data('chart');
+
+        if (elem.is(':checked')) {
+
+          // Add options
+          pushOptions($chart, options);
+
+          // Update chart
+          $chart.update();
+        } else {
+
+          // Remove options
+          popOptions($chart, options);
+
+          // Update chart
+          $chart.update();
+        }
+      }
+
+      // Update options
+      function updateOptions(elem) {
+        var options = elem.data('update');
+        var $target = $(elem.data('target'));
+        var $chart = $target.data('chart');
+
+        // Parse options
+        parseOptions($chart, options);
+
+        // Toggle ticks
+        toggleTicks(elem, $chart);
+
+        // Update chart
+        $chart.update();
+      }
+
+      // Toggle ticks
+      function toggleTicks(elem, $chart) {
+
+        if (elem.data('prefix') !== undefined || elem.data('prefix') !== undefined) {
+          var prefix = elem.data('prefix') ? elem.data('prefix') : '';
+          var suffix = elem.data('suffix') ? elem.data('suffix') : '';
+
+          // Update ticks
+          $chart.options.scales.yAxes[0].ticks.callback = function(value) {
+            if (!(value % 10)) {
+              return prefix + value + suffix;
+            }
+          }
+
+          // Update tooltips
+          $chart.options.tooltips.callbacks.label = function(item, data) {
+            var label = data.datasets[item.datasetIndex].label || '';
+            var yLabel = item.yLabel;
+            var content = '';
+
+            if (data.datasets.length > 1) {
+              content += '<span class="popover-body-label mr-auto">' + label + '</span>';
+            }
+
+            content += '<span class="popover-body-value">' + prefix + yLabel + suffix + '</span>';
+            return content;
+          }
+
+        }
+      }
+
+
+      // Events
+
+      // Parse global options
+      if (window.Chart) {
+        parseOptions(Chart, chartOptions());
+      }
+
+      // Toggle options
+      $toggle.on({
+        'change': function() {
+          var $this = $(this);
+
+          if ($this.is('[data-add]')) {
+            toggleOptions($this);
+          }
+        },
+        'click': function() {
+          var $this = $(this);
+
+          if ($this.is('[data-update]')) {
+            updateOptions($this);
+          }
+        }
+      });
+
+
+      // Return
+
+      return {
+        colors: colors,
+        fonts: fonts,
+        mode: mode
+      };
+
+    })();
+    var SalesChart = (function() {
+
+      //
+      // Variables
+      //
+
+      var $chart = $('#sales-chart');
+      var $ordersSelect = $('[name="ordersSelect"]');
+
+
+      //
+      // Methods
+      //
+
+      // Init chart
+      function initChart($chart) {
+
+        // Create chart
+        chart = new Chart($chart, {
+          type: 'bar',
+          options: {
+            scales: {
+              yAxes: [{
+                gridLines: {
+                  lineWidth: 1,
+                  color: '#dfe2e6',
+                  zeroLineColor: '#dfe2e6'
+                },
+                ticks: {
+                  callback: function(value) {
+                    if (!(value % 10)) {
+                      return '€' + value
+                      // return value
+                    }
+                  }
+                }
+              }]
+            },
+            tooltips: {
+              callbacks: {
+                label: function(item, data) {
+                  var label = data.datasets[item.datasetIndex].label || '';
+                  var yLabel = item.yLabel;
+                  var content = '';
+
+                  if (data.datasets.length > 1) {
+                    content += '<span class="popover-body-label mr-auto">' + label + '</span>';
+                  }
+
+                  content += '<span class="popover-body-value">' + yLabel + '€ </span>';
+
+                  return content;
+                }
+              }
+            }
+          },
+          data: {
+            labels: new Array(),
+            datasets: [{
+              fill: true,
+              backgroundColor: "rgba(0,123,253,0.5)",
+              borderColor: "rgba(1,181,198,1)",
+              pointBorderColor: "#fff",
+              pointBackgroundColor: "rgba(179,181,198,1)",
+              label: 'Sales',
+              data: new Array(),
+            }]
+          }
+        });
+
+        // Save to jQuery object
+        $chart.data('chart', chart);
+      }
+
+
+      // Init chart
+      if ($chart.length) {
+        initChart($chart);
+      }
+
+    })();
+
+    $('.selectpicker').selectpicker();
+
+    $('.check-box').on('click', function() {
+      var check_type = $(this).attr("check-type");
+      checkbox = document.getElementById("check" + check_type);
+      if (checkbox.checked == true) {
+        if (check_type == "ArticleProduct") {
+          $(".radio-input").attr('disabled',false);
+          var type = $('input[name=custom-radio]:checked', '#radio-form').val()
+          if (type == "Article") {
+            $("#filterArticle").prop('disabled', false);
+            $("#filterProduct").prop('disabled', true);
+          }
+          else if (type == "Product") {
+            $("#filterArticle").prop('disabled', true);
+            $("#filterProduct").prop('disabled', false);
+          }
+        }
+        $("#filter" + check_type).prop('disabled', false);
+        $(".selectpicker").selectpicker('refresh');
+      }
+      else {
+        if (check_type == "ArticleProduct") {
+          $(".radio-input").attr('disabled',true);
+          $("#filterArticle").prop('disabled', true);
+          $("#filterProduct").prop('disabled', true);
+        }
+
+        $("#filter" + check_type).prop('disabled', true);
+        $(".selectpicker").selectpicker('refresh');
+      }
+    });
+
+    $('.radio-input').on('click', function() {
+      var type = $(this).val();
+      if (type == "Product") {
+        $("#filterProduct").prop('disabled', false);
+        $("#filterArticle").prop('disabled', true);
+      }
+      else if (type == "Article") {
+        $("#filterProduct").prop('disabled', true);
+        $("#filterArticle").prop('disabled', false);
+      }
+      $('.selectpicker').selectpicker('refresh');
+    });
+  });
+
+  var Display = function() {
+    var xaxis = $("#select-x-axis").val();
+    var filter_opts = {Country: false, Channel: false, ArticleProduct: false, Brand: false};
+    var countries = $("#filterCountry").val();
+    var channels = $("#filterChannel").val();
+    var articles = $("#filterArticle").val();
+    var products = $("#filterProduct").val();
+    var brands = $("#filterBrand").val();
+
+    $(".check-box").each(function() {
+      var check_type = $(this).attr("check-type");
+      checkbox = document.getElementById("check" + check_type);
+      if (checkbox.checked == true) {
+        filter_opts[check_type] = true;
+      }
+      else {
+        filter_opts[check_type] = false;
+      }
+    });
+    var product_article = $('input[name=custom-radio]:checked', '#radio-form').val()
+    $.ajax({
+        type: "POST",
+        url: "/display-chart-by-filter-option/",
+        method: "POST",
+        data: {filter_options: JSON.stringify(filter_opts), xaxis: xaxis, countries: JSON.stringify(countries),
+                channels: JSON.stringify(channels), articles: JSON.stringify(articles), products: JSON.stringify(products), brands: JSON.stringify(brands),
+                type: product_article, csrfmiddlewaretoken: $("#csrf-token").val(), start_time: start_time, end_time: end_time},
+        beforeSend: function () {
+        },
+        success: function (response) {
+            const result = JSON.parse(response);
+            let sum = 0;
+            if (xaxis == "day") {
+              if (result.reports.length == 0) {
+                alert("No result!!!");
+                return;
+              }
+
+              let discount = new Array(result.number_of_days).fill(0);
+              let labels = new Array(result.number_of_days).fill(0);
+              for (let k = 1 ; k <= result.number_of_days ; k ++) {
+                labels[k-1]=k
+              }
+              for (let i = 0 ; i < result.reports.length ; i ++) {
+                  for (let j = 1 ; j <= result.number_of_days ; j ++) {
+                    if (result.reports[i].day == j) {
+                      discount[j-1]=result.reports[i].total_discount.toFixed(2);
+                      sum += parseFloat(result.reports[i].total_discount.toFixed(2));
+                    }
+                  }
+              }
+              chart.data.datasets[0].data = discount;
+              chart.data.labels = labels;
+              chart.update();
+              $("#sum").text("Sum: " + parseFloat(sum).toFixed(2));
+            }
+            else {
+              let sales = new Array();
+              let labels = new Array();
+              if (result.length == 0) {
+                alert("No result!!!");
+                return;
+              }
+              for (let i = 0 ; i < result.length ; i ++) {
+                  labels.push(result[i].day)
+                  sales.push(result[i].total_discount.toFixed(2));
+                  sum += parseFloat(result[i].total_discount.toFixed(2));
+              }
+              chart.data.datasets[0].data = sales;
+              chart.data.labels = labels;
+              chart.update();
+              $("#sum").text("Sum: " + parseFloat(sum).toFixed(2));
+            }
+
+
+        },
+        error: function () {
+            alert("Error! Please try again")
+        }
+    });
+  }
+</script>
+{% endblock js %}

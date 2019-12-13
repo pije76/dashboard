@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row mt-5">
+    <div class="col-xl-12 mb-5 mb-xl-0">
+        <div class="card shadown">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col-sm-5">
+                        <h2 class="mb-0">Monthly Sales Overview</h2>
+                    </div>
+                    <div class="col-sm-2">
+                        <h4 class="mb-0">Year:</h4>
+                        <select class="form-control" id="select-year">
+                            {% for info in year_info %}
+                              {% if cur_year == info %}
+                                  <option value="{{ info }}" selected>{{ info }}</option>
+                              {% else %}
+                                  <option value="{{ info }}">{{ info }}</option>
+                              {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <h4 class="mb-0">Start month:</h4>
+                        <select class="form-control" id="select-start-month">
+                            <option value="1" selected>Jan</option>
+                            <option value="2">Feb</option>
+                            <option value="3">Mar</option>
+                            <option value="4">Apr</option>
+                            <option value="5">May</option>
+                            <option value="6">Jun</option>
+                            <option value="7">Jul</option>
+                            <option value="8">Aug</option>
+                            <option value="9">Sep</option>
+                            <option value="10">Oct</option>
+                            <option value="11">Nov</option>
+                            <option value="12">Dec</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <h4 class="mb-0">End month:</h4>
+                        <select class="form-control" id="select-end-month">
+                            <option value="1">Jan</option>
+                            <option value="2">Feb</option>
+                            <option value="3">Mar</option>
+                            <option value="4">Apr</option>
+                            <option value="5">May</option>
+                            <option value="6">Jun</option>
+                            <option value="7">Jul</option>
+                            <option value="8">Aug</option>
+                            <option value="9">Sep</option>
+                            <option value="10">Oct</option>
+                            <option value="11">Nov</option>
+                            <option value="12" selected>Dec</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-1 text-right">
+                        <a class="btn btn-sm btn-primary" id="filter-by-year-month" style="color: white;">See all</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                  <!-- Chart -->
+                  <div class="chart">
+                    <canvas id="chart-monthly-sales" class="chart-canvas"></canvas>
+                  </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-5">
+    <div class="col-xl-12 mb-5 mb-xl-0">
+        <div class="card shadown">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col-sm-12">
+                        <h2 class="mb-0">Monthly Sales Overview</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                  <!-- Chart -->
+                  <div class="chart">
+                    <canvas id="chart-yearly-sales" class="chart-canvas"></canvas>
+                  </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block js %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    let monthly_sales_info = {{ total_sales_info|safe }};
+    let yearly_sales_info = {{ yearly_sales|safe }};
+    let orderChart_monthly_sales, orderChart_yearly_sales;
+
+    let monthly_sales = new Array();
+    let monthly_labels = new Array();
+    let yearly_sales = new Array();
+    let yearly_labels = new Array();
+    let braineffect = new Array();
+    let vitafair = new Array();
+
+    monthly_sales_info.forEach(arr => {
+      monthly_sales.push(arr.total_sales.toFixed(2));
+      monthly_labels.push(arr.month_name);
+      braineffect.push(arr.braineffect.toFixed(2));
+      vitafair.push(arr.vitafair.toFixed(2));
+    });
+
+    yearly_sales_info.forEach(arr => {
+      yearly_sales.push(arr.sales.toFixed(2));
+      yearly_labels.push(arr.year_name);
+    });
+
+    var Charts = (function() {
+
+      	// Variable
+
+      	var $toggle = $('[data-toggle="chart"]');
+      	var mode = 'light';//(themeMode) ? themeMode : 'light';
+      	var fonts = {
+      		base: 'Open Sans'
+      	}
+
+      	// Colors
+      	var colors = {
+      		gray: {
+      			100: '#f6f9fc',
+      			200: '#e9ecef',
+      			300: '#dee2e6',
+      			400: '#ced4da',
+      			500: '#adb5bd',
+      			600: '#8898aa',
+      			700: '#525f7f',
+      			800: '#32325d',
+      			900: '#212529'
+      		},
+      		theme: {
+      			'default': '#172b4d',
+      			'primary': '#5e72e4',
+      			'secondary': '#f4f5f7',
+      			'info': '#11cdef',
+      			'success': '#2dce89',
+      			'danger': '#f5365c',
+      			'warning': '#fb6340'
+      		},
+      		black: '#12263F',
+      		white: '#FFFFFF',
+      		transparent: 'transparent',
+      	};
+
+
+      	// Methods
+
+      	// Chart.js global options
+      	function chartOptions() {
+
+      		// Options
+      		var options = {
+      			defaults: {
+      				global: {
+      					responsive: true,
+      					maintainAspectRatio: false,
+      					defaultColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
+      					defaultFontColor: (mode == 'dark') ? colors.gray[700] : colors.gray[600],
+      					defaultFontFamily: fonts.base,
+      					defaultFontSize: 13,
+      					layout: {
+      						padding: 0
+      					},
+      					legend: {
+      						display: false,
+      						position: 'bottom',
+      						labels: {
+      							usePointStyle: true,
+      							padding: 16
+      						}
+      					},
+      					elements: {
+      						point: {
+      							radius: 0,
+      							backgroundColor: colors.theme['primary']
+      						},
+      						line: {
+      							tension: .4,
+      							borderWidth: 4,
+      							borderColor: colors.theme['primary'],
+      							backgroundColor: colors.transparent,
+      							borderCapStyle: 'rounded'
+      						},
+      						rectangle: {
+      							backgroundColor: colors.theme['warning']
+      						},
+      						arc: {
+      							backgroundColor: colors.theme['primary'],
+      							borderColor: (mode == 'dark') ? colors.gray[800] : colors.white,
+      							borderWidth: 4
+      						}
+      					},
+      					tooltips: {
+      						enabled: true,
+      						mode: 'index',
+      						intersect: false,
+      					}
+      				},
+      				doughnut: {
+      					cutoutPercentage: 83,
+      					legendCallback: function(chart) {
+      						var data = chart.data;
+      						var content = '';
+
+      						data.labels.forEach(function(label, index) {
+      							var bgColor = data.datasets[0].backgroundColor[index];
+
+      							content += '<span class="chart-legend-item">';
+      							content += '<i class="chart-legend-indicator" style="background-color: ' + bgColor + '"></i>';
+      							content += label;
+      							content += '</span>';
+      						});
+
+      						return content;
+      					}
+      				}
+      			}
+      		}
+
+      		// yAxes
+      		Chart.scaleService.updateScaleDefaults('linear', {
+      			gridLines: {
+      				borderDash: [2],
+      				borderDashOffset: [2],
+      				color: (mode == 'dark') ? colors.gray[900] : colors.gray[300],
+      				drawBorder: false,
+      				drawTicks: false,
+      				drawOnChartArea: true,
+      				zeroLineWidth: 0,
+      				zeroLineColor: 'rgba(0,0,0,0)',
+      				zeroLineBorderDash: [2],
+      				zeroLineBorderDashOffset: [2]
+      			},
+      			ticks: {
+      				beginAtZero: true,
+      				padding: 10,
+      				callback: function(value) {
+      					if (!(value % 10)) {
+      						return value
+      					}
+      				}
+      			}
+      		});
+
+      		// xAxes
+      		Chart.scaleService.updateScaleDefaults('category', {
+      			gridLines: {
+      				drawBorder: false,
+      				drawOnChartArea: false,
+      				drawTicks: false
+      			},
+      			ticks: {
+      				padding: 20
+      			},
+      			maxBarThickness: 10
+      		});
+
+      		return options;
+
+      	}
+
+      	// Parse global options
+      	function parseOptions(parent, options) {
+      		for (var item in options) {
+      			if (typeof options[item] !== 'object') {
+      				parent[item] = options[item];
+      			} else {
+      				parseOptions(parent[item], options[item]);
+      			}
+      		}
+      	}
+
+      	// Push options
+      	function pushOptions(parent, options) {
+      		for (var item in options) {
+      			if (Array.isArray(options[item])) {
+      				options[item].forEach(function(data) {
+      					parent[item].push(data);
+      				});
+      			} else {
+      				pushOptions(parent[item], options[item]);
+      			}
+      		}
+      	}
+
+      	// Pop options
+      	function popOptions(parent, options) {
+      		for (var item in options) {
+      			if (Array.isArray(options[item])) {
+      				options[item].forEach(function(data) {
+      					parent[item].pop();
+      				});
+      			} else {
+      				popOptions(parent[item], options[item]);
+      			}
+      		}
+      	}
+
+      	// Toggle options
+      	function toggleOptions(elem) {
+      		var options = elem.data('add');
+      		var $target = $(elem.data('target'));
+      		var $chart = $target.data('chart');
+
+      		if (elem.is(':checked')) {
+
+      			// Add options
+      			pushOptions($chart, options);
+
+      			// Update chart
+      			$chart.update();
+      		} else {
+
+      			// Remove options
+      			popOptions($chart, options);
+
+      			// Update chart
+      			$chart.update();
+      		}
+      	}
+
+      	// Update options
+      	function updateOptions(elem) {
+      		var options = elem.data('update');
+      		var $target = $(elem.data('target'));
+      		var $chart = $target.data('chart');
+
+      		// Parse options
+      		parseOptions($chart, options);
+
+      		// Toggle ticks
+      		toggleTicks(elem, $chart);
+
+      		// Update chart
+      		$chart.update();
+      	}
+
+      	// Toggle ticks
+      	function toggleTicks(elem, $chart) {
+
+      		if (elem.data('prefix') !== undefined || elem.data('prefix') !== undefined) {
+      			var prefix = elem.data('prefix') ? elem.data('prefix') : '';
+      			var suffix = elem.data('suffix') ? elem.data('suffix') : '';
+
+      			// Update ticks
+      			$chart.options.scales.yAxes[0].ticks.callback = function(value) {
+      				if (!(value % 10)) {
+      					return prefix + value + suffix;
+      				}
+      			}
+
+      			// Update tooltips
+      			$chart.options.tooltips.callbacks.label = function(item, data) {
+      				var label = data.datasets[item.datasetIndex].label || '';
+      				var yLabel = item.yLabel;
+      				var content = '';
+
+      				if (data.datasets.length > 1) {
+      					content += '<span class="popover-body-label mr-auto">' + label + '</span>';
+      				}
+
+      				content += '<span class="popover-body-value">' + prefix + yLabel + suffix + '</span>';
+      				return content;
+      			}
+
+      		}
+      	}
+
+
+      	// Events
+
+      	// Parse global options
+      	if (window.Chart) {
+      		parseOptions(Chart, chartOptions());
+      	}
+
+      	// Toggle options
+      	$toggle.on({
+      		'change': function() {
+      			var $this = $(this);
+
+      			if ($this.is('[data-add]')) {
+      				toggleOptions($this);
+      			}
+      		},
+      		'click': function() {
+      			var $this = $(this);
+
+      			if ($this.is('[data-update]')) {
+      				updateOptions($this);
+      			}
+      		}
+      	});
+
+
+      	// Return
+
+      	return {
+      		colors: colors,
+      		fonts: fonts,
+      		mode: mode
+      	};
+
+      })();
+
+    var SalesChart = (function() {
+
+      //
+      // Variables
+      //
+
+      var $chart = $('#chart-monthly-sales');
+      var $ordersSelect = $('[name="ordersSelect"]');
+
+
+      //
+      // Methods
+      //
+
+      // Init chart
+      function initChart($chart) {
+
+        // Create chart
+        var options = {
+    			tooltips: {
+    				mode: 'index',
+    				intersect: false
+    			},
+    			responsive: true,
+    			scales: {
+    				xAxes: [{
+    					stacked: true,
+    				}],
+    				yAxes: [{
+    					stacked: true
+    				}]
+    			}
+    		}
+
+        orderChart_monthly_sales = new Chart($chart, {
+          type: 'bar',
+          options: options,
+          data: {
+            labels: monthly_labels,
+            datasets: [{
+              backgroundColor: Charts.colors.theme['danger'],
+              label: 'Vitafair',
+              data: vitafair,
+            },{
+              backgroundColor: Charts.colors.theme['success'],
+              label: 'Braineffect',
+              data: braineffect,
+            }]
+          }
+        });
+
+        // Save to jQuery object
+        $chart.data('chart', orderChart_monthly_sales);
+      }
+
+
+      // Init chart
+      if ($chart.length) {
+        initChart($chart);
+      }
+
+    })();
+    var SalesChart = (function() {
+
+      var $chart = $('#chart-yearly-sales');
+      var $ordersSelect = $('[name="ordersSelect"]');
+
+      // Init chart
+      function initChart($chart) {
+
+        // Create chart
+        orderChart_yearly_sales = new Chart($chart, {
+          type: 'line',
+          options: {
+            scales: {
+              yAxes: [{
+                gridLines: {
+                  lineWidth: 1,
+                  color: Charts.colors.gray[900],
+                  zeroLineColor: Charts.colors.gray[900]
+                },
+                ticks: {
+                  callback: function(value) {
+                    if (!(value % 10)) {
+                      return value + '€'
+                    }
+                  }
+                }
+              }]
+            },
+            tooltips: {
+              callbacks: {
+                label: function(item, data) {
+                  var label = data.datasets[item.datasetIndex].label || '';
+                  var yLabel = item.yLabel;
+                  var content = '';
+
+                  if (data.datasets.length > 1) {
+                    content += '<span class="popover-body-label mr-auto">' + label + '</span>';
+                  }
+
+                  content += '<span class="popover-body-value">' + yLabel + '€</span>';
+                  return content;
+                }
+              }
+            }
+          },
+
+          data: {
+            labels: yearly_labels,
+            datasets: [{
+              label: 'Sales',
+              data: yearly_sales
+            }]
+          }
+        });
+
+        // Save to jQuery object
+
+        $chart.data('chart', orderChart_yearly_sales);
+      }
+
+
+      // Init chart
+      if ($chart.length) {
+        initChart($chart);
+      }
+
+    })();
+
+    $("#filter-by-year-month").on("click", function() {
+        let _year = $("#select-year").val();
+        let _start_month = $("#select-start-month").val();
+        let _end_month = $("#select-end-month").val();
+
+        $.ajax({
+            type: "POST",
+            url: "/filter-by-year-month-for-material-sales/",
+            method: "POST",
+            data: {year: _year, start_month: _start_month, end_month: _end_month, csrfmiddlewaretoken: $("#csrf-token").val()},
+            beforeSend: function () {
+            },
+            success: function (response) {
+                const result = JSON.parse(response);
+                let sales = Array();
+                let labels = Array();
+                let vitafair = Array();
+                let braineffect = Array();
+                for (let i = 0 ; i < result.length ; i ++) {
+                    sales.push(result[i].total_sales.toFixed(2));
+                    vitafair.push(result[i].vitafair.toFixed(2));
+                    braineffect.push(result[i].braineffect.toFixed(2));
+                    labels.push(result[i].month_name);
+                }
+
+                orderChart_monthly_sales.data.datasets[0].data = vitafair;
+                orderChart_monthly_sales.data.datasets[1].data = braineffect;
+                orderChart_monthly_sales.data.labels = labels;
+                orderChart_monthly_sales.update();
+            },
+            error: function () {
+                alert("Error! Please try again")
+            }
+        });
+    });
+  });
+</script>
+{% endblock js %}

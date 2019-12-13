@@ -1,0 +1,703 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+  .ct-axis-title {
+    fill: white;
+  }
+  .chartist-tooltip {
+    /* set me to make the tooltip for the point at 2 more visible */
+    position: relative;
+  }
+  .chartist-tooltip {
+  position: absolute;
+  display: inline-block;
+  opacity: 0;
+  min-width: 5em;
+  padding: .5em;
+  background: #F4C63D;
+  color: #453D3F;
+  font-family: Oxygen,Helvetica,Arial,sans-serif;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
+  -webkit-transition: opacity .2s linear;
+  -moz-transition: opacity .2s linear;
+  -o-transition: opacity .2s linear;
+  transition: opacity .2s linear; }
+  .chartist-tooltip:before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    margin-left: -15px;
+    border: 15px solid transparent;
+    border-top-color: #F4C63D; }
+  .chartist-tooltip.tooltip-show {
+    opacity: 1; }
+
+.ct-area, .ct-line {
+  pointer-events: none; }
+
+</style>
+<div class="row mt-5">
+    <div class="col-xl-12 mb-5 mb-xl-0">
+        <div class="card bg-gradient-default shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h2 class="text-white mb-0">Product revenue per day</h2>
+                    </div>
+                    <div class="col-md-2">
+                      <h3 class="text-white">
+                        Total Revenue: <span class="text-danger mr-2 total-revenue-day"></span>
+                      </h3>
+
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <a class="btn btn-sm btn-primary"  data-toggle="modal" data-target="#modal-day"  style="color: white;">Filter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+              <!-- Chart -->
+              <div class="chart">
+              <!-- Chart wrapper -->
+                  <!-- <canvas id="chart-sales" class="chart-canvas"></canvas> -->
+                    <div class="ct-chart" id="dailySalesChart"></div>
+              </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-5" >
+    <div class="col-xl-6">
+        <div class="card shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="mb-0">Product revenue per month</h2>
+                    </div>
+                    <div class="col text-right">
+                        <a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modal-month" style="color: white;">Filter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Chart -->
+                <div class="chart">
+                    <canvas id="chart-orders-month" class="chart-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="mb-0">Product revenue per week</h2>
+                    </div>
+                    <div class="col text-right">
+                        <a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modal-week" style="color: white;">Filter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Chart -->
+                <div class="chart">
+                  <canvas id="chart-orders-week" class="chart-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-5">
+    <div class="col-xl-12">
+        <div class="card shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="mb-0">Product revenue by customer country</h2>
+                    </div>
+                    <div class="col text-right">
+                        <a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modal-country" style="color: white;">Filter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+            <!-- Chart -->
+                <div class="chart">
+                    <canvas id="chart-orders-country" class="chart-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-5">
+  <div class="col-xl-12">
+      <div class="card shadow">
+          <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                  <div class="col">
+                      <h2 class="mb-0">Total sales/revenue per shop view</h2>
+                  </div>
+                  <div class="col text-right">
+                      <a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modal-shopview" style="color: white;">Filter</a>
+                  </div>
+              </div>
+          </div>
+          <div class="card-body">
+              <!-- Chart -->
+              <div class="chart">
+                  <canvas id="chart-orders-shop-view" class="chart-canvas"></canvas>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+<div class="row mt-5">
+    <div class="col-xl-12">
+        <div class="card shadow">
+            <div class="card-header border-0">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h3 class="mb-0">Sales per articles</h3>
+                    </div>
+                    <div class="col text-right">
+                        <a class="btn btn-sm btn-primary"  data-toggle="modal" data-target="#modal-article" style="color: white;">Filter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart">
+                   <canvas id="chart-orders-product" class="chart-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modal-article" tabindex="-1" role="dialog" aria-labelledby="modal-default" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal- modal-dialog-centered modal-" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="modal-title-default">Type your modal title</h6>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form">
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Date:</label>
+            <div class="col-md-10">
+              <input type="text" name="daterange" id="product-day" value="{{ start_day|date:'m/d/Y' }} - {{ end_day|date:'m/d/Y' }}" class="form-control" style="text-align: center" />
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Articles:</label>
+            <div class="col-md-10">
+                <select class="selectpicker" id="select-articles" multiple data-live-search="true">
+                    {% for article in articles %}
+                        <option value="{{ article.article_id }}">{{ article.article_name|truncatechars:30 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="see-all">See All</button>
+        <button type="button" class="btn btn-link  ml-auto" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="modal-shopview" tabindex="-1" role="dialog" aria-labelledby="modal-default" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal- modal-dialog-centered modal-" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="modal-title-default">Type your modal title</h6>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form">
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Date:</label>
+            <div class="col-md-10">
+                <input type="text" name="daterange" id="daterange-shopview-sales" value="{{ start_day|date:'m/d/Y' }} - {{ end_day|date:'m/d/Y' }}" class="form-control" style="text-align: center" />
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">ShopView:</label>
+            <div class="col-md-10">
+                <select class="selectpicker" id="select-shopview" multiple data-live-search="true">
+                    {% for shopview in shopviews %}
+                        <option value="{{ shopview.shop_view }}">{{ shopview.shop_view }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Articles:</label>
+            <div class="col-md-10">
+                <select class="selectpicker" id="select-articles-for-shopview" multiple data-live-search="true">
+                    {% for article in articles %}
+                        <option value="{{ article.article_id }}">{{ article.article_name|truncatechars:30 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="see-shopview-sales-by-daterange">See All</button>
+        <button type="button" class="btn btn-link  ml-auto" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="modal-country" tabindex="-1" role="dialog" aria-labelledby="modal-default" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal- modal-dialog-centered modal-" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="modal-title-default">Type your modal title</h6>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form">
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Date:</label>
+            <div class="col-md-10">
+                <input type="text" name="daterange" id="daterange-country-sales" value="{{ start_day|date:'m/d/Y' }} - {{ end_day|date:'m/d/Y' }}" class="form-control" style="text-align: center" />
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Countries:</label>
+            <div class="col-md-10">
+              <select class="selectpicker" id="select-countries" multiple data-live-search="true">
+                  {% for country in countries %}
+                      <option value="{{ country.land }}">{{ country.land }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Articles:</label>
+            <div class="col-md-10">
+              <select class="selectpicker" id="select-articles-for-country" multiple data-live-search="true">
+                  {% for article in articles %}
+                      <option value="{{ article.article_id }}">{{ article.article_name|truncatechars:30 }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="see-country-sales-by-daterange">See All</button>
+        <button type="button" class="btn btn-link  ml-auto" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="modal-month" tabindex="-1" role="dialog" aria-labelledby="modal-default" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal- modal-dialog-centered modal-" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="modal-title-default">Type your modal title</h6>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form">
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Year:</label>
+            <div class="col-md-10">
+                <input id="year_list_for_month_sales" value="{{ year }}" class="form-control" style="text-align: center;">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Articles:</label>
+            <div class="col-md-10">
+              <select class="selectpicker" id="select-articles-for-month" multiple data-live-search="true">
+                  {% for article in articles %}
+                      <option value="{{ article.article_id }}">{{ article.article_name|truncatechars:30 }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="see-month-sales-by-year" >See All</button>
+        <button type="button" class="btn btn-link  ml-auto" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="modal-week" tabindex="-1" role="dialog" aria-labelledby="modal-default" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal- modal-dialog-centered modal-" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="modal-title-default">Type your modal title</h6>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form">
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Year:</label>
+            <div class="col-md-10">
+                <input type="text" name="daterange" id="week-day" value="{{ start_day|date:'m/d/Y' }} - {{ end_day|date:'m/d/Y' }}" class="form-control" style="text-align: center" />
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Articles:</label>
+            <div class="col-md-10">
+              <select class="selectpicker" id="select-articles-for-week" multiple data-live-search="true">
+                  {% for article in articles %}
+                      <option value="{{ article.article_id }}">{{ article.article_name|truncatechars:30 }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="see-week-sales">See All</button>
+        <button type="button" class="btn btn-link  ml-auto" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="modal-day" tabindex="-1" role="dialog" aria-labelledby="modal-default" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal- modal-dialog-centered modal-" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="modal-title-default">Type your modal title</h6>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form">
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Month:</label>
+            <div class="col-md-10">
+                <input type="text" id="day-sales-by-year-month" value="{{ end_day|date:'Y-m' }}" class="form-control" style="text-align: center" />
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="example-text-input" class="col-md-2 col-form-label form-control-label">Articles:</label>
+            <div class="col-md-10">
+                <select class="selectpicker" id="select-articles-for-day" multiple data-live-search="true">
+                    {% for article in articles %}
+                        <option value="{{ article.article_id }}">{{ article.article_name|truncatechars:30 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="see-day-sales-by-year-month">See All</button>
+        <button type="button" class="btn btn-link  ml-auto" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+{% block js %}
+<script type="text/javascript">
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      let number_of_days = parseInt({{ numberof_days|safe }})
+      let report_day  = {{ report_day|safe }};
+      let report_week  = {{ report_week|safe }};
+      let report_month  = {{ report_month|safe }};
+      let report_country = {{ report_country|safe }};
+      let report_shop_view = {{ report_shop_view|safe }};
+      let articles = new Array();
+      let sales = new Array();
+      let start_time = "{{ start_day|date:'Y-m-d' }}";
+      let end_time = "{{ end_day|date:'Y-m-d' }}";
+      let start_day = "{{ start_day|date:'Y-m-d' }}";
+      let end_day = "{{ end_day|date:'Y-m-d' }}";
+      // let start_yearmon = "2019-01-01"
+      // let end_yearmon = "2019-01-02"
+      let start_date_country_sales = "{{ start_day|date:'Y-m-d' }}";
+      let end_date_country_sales = "{{ end_day|date:'Y-m-d' }}";
+      let start_date_shopview_sales = "{{ start_day|date:'Y-m-d' }}";
+      let end_date_shopview_sales = "{{ end_day|date:'Y-m-d' }}";
+      let ordersChart_article;
+      let ordersChart_day;
+      let ordersChart_week;
+      let orderChart_country;
+      let orderChart_shopview;
+      let orderChart_month;
+      let dailySalesChart;
+      let day_revenue_labels;
+
+      $('.selectpicker').selectpicker();
+
+      $('#product-day').daterangepicker({
+          opens: 'left'
+        }, function(start, end, label) {
+          start_time = start.format('YYYY-MM-DD');
+          end_time = end.format('YYYY-MM-DD');
+        });
+      $('#day-sales-by-year-month').datepicker({
+          format: "yyyy-mm",
+          viewMode: "months",
+          minViewMode: "months"
+        });
+      $('#week-day').daterangepicker({
+          opens: 'left'
+        }, function(start, end, label) {
+          start_day = start.format('YYYY-MM-DD');
+          end_day = end.format('YYYY-MM-DD');
+        });
+      $('#daterange-country-sales').daterangepicker({
+          opens: 'left'
+        }, function(start, end, label) {
+          start_date_country_sales = start.format('YYYY-MM-DD');
+          end_date_country_sales = end.format('YYYY-MM-DD');
+        });
+      $('#daterange-shopview-sales').daterangepicker({
+          opens: 'left'
+        }, function(start, end, label) {
+          start_date_shopview_sales = start.format('YYYY-MM-DD');
+          end_date_shopview_sales = end.format('YYYY-MM-DD');
+        });
+
+      $("#year_list_for_month_sales").datepicker( {
+        format: " yyyy", // Notice the Extra space at the beginning
+        viewMode: "years",
+        minViewMode: "years"
+      });
+</script>
+<script src="{% static 'js/argon-dashboard.js' %}"></script>
+<script type="text/javascript">
+      $("#see-all").on("click", function () {
+          var articles = $('#select-articles').val();
+          $.ajax({
+              type: "POST",
+              url: "/search_article/",
+              method: "POST",
+              data: {filtered_articles: JSON.stringify(articles), start_time: start_time, end_time: end_time, csrfmiddlewaretoken: $("#csrf-token").val()},
+              beforeSend: function () {
+              },
+              success: function (response) {
+                  var result = JSON.parse(response);
+                  if (result.length == 0) {
+                    alert("No result!!!");
+                    return;
+                  }
+
+                  articles = new Array();
+                  sales = new Array();
+                  for (var i = 0 ; i < result.length ; i ++) {
+                      articles.push(result[i].article_name);
+                      sales.push(result[i].total_sales.toFixed(2));
+                  }
+                  ordersChart_article.data.datasets[0].data = sales;
+                  ordersChart_article.data.labels = articles;
+                  ordersChart_article.update();
+              },
+              error: function () {
+                  alert("Error! Please try again")
+              }
+          });
+      });
+      $("#see-week-sales").on("click", function() {
+          let _start_day = start_day;
+          let _end_day = end_day;
+          let articles = $("#select-articles-for-week").val();
+          $.ajax({
+              type: "POST",
+              url: "/search-by-daterange-for-week-sales/",
+              method: "POST",
+              data: {filtered_articles: JSON.stringify(articles), start_time: _start_day, end_time: _end_day, csrfmiddlewaretoken: $("#csrf-token").val()},
+              beforeSend: function () {
+              },
+              success: function (response) {
+                  const result = JSON.parse(response);
+                  if (result.length == 0) {
+                    alert("No result!!!");
+                    return;
+                  }
+
+                  let discount = new Array();
+                  let labels = new Array();
+                  for (let i = 0 ; i < result.length ; i ++) {
+                      discount.push(result[i].total_discount.toFixed(2));
+                      labels.push(result[i].week_number);
+                  }
+                  ordersChart_week.data.datasets[0].data = discount;
+                  ordersChart_week.data.labels = labels;
+                  ordersChart_week.update();
+              },
+              error: function () {
+                  alert("Error! Please try again")
+              }
+          });
+      });
+
+      $("#see-country-sales-by-daterange").on("click", function() {
+          let _countries = $("#select-countries").val();
+          let _start_day = start_date_country_sales;
+          let _end_day = end_date_country_sales;
+          let articles = $("#select-articles-for-country").val();
+          $.ajax({
+              type: "POST",
+              url: "/search-by-daterange-for-country-sales/",
+              method: "POST",
+              data: {filtered_articles: JSON.stringify(articles), countries: JSON.stringify(_countries), start_time: _start_day, end_time: _end_day, csrfmiddlewaretoken: $("#csrf-token").val()},
+              beforeSend: function () {
+              },
+              success: function (response) {
+                  const result = JSON.parse(response);
+                  if (result.length == 0) {
+                    alert("No result!!!");
+                    return;
+                  }
+
+                  let discount = new Array();
+                  let labels = new Array();
+                  for (let i = 0 ; i < result.length ; i ++) {
+                      labels.push(result[i].country)
+                      discount.push(result[i].total_discount.toFixed(2));
+                  }
+                  orderChart_country.data.datasets[0].data = discount;
+                  orderChart_country.data.labels = labels;
+                  orderChart_country.update();
+              },
+              error: function () {
+                  alert("Error! Please try again")
+              }
+          });
+      });
+      $("#see-shopview-sales-by-daterange").on("click", function() {
+          let _shopviews = $("#select-shopview").val();
+          let _start_day = start_date_shopview_sales;
+          let _end_day = end_date_shopview_sales;
+          let articles = $("#select-articles-for-shopview").val();
+          $.ajax({
+              type: "POST",
+              url: "/search-by-daterange-for-shopview-sales/",
+              method: "POST",
+              data: {filtered_articles: JSON.stringify(articles), shopviews: JSON.stringify(_shopviews), start_time: _start_day, end_time: _end_day, csrfmiddlewaretoken: $("#csrf-token").val()},
+              beforeSend: function () {
+              },
+              success: function (response) {
+                  const result = JSON.parse(response);
+                  if (result.length == 0) {
+                    alert("No result!!!");
+                    return;
+                  }
+
+                  let labels = new Array();
+                  let discount = new Array();
+                  for (let i = 0 ; i < result.length ; i ++) {
+                      labels.push(result[i].shop_view)
+                      discount.push(result[i].total_discount.toFixed(2));
+                  }
+                  orderChart_shopview.data.datasets[0].data = discount;
+                  orderChart_shopview.data.labels = labels;
+                  orderChart_shopview.update();
+              },
+              error: function () {
+                  alert("Error! Please try again")
+              }
+          });
+      });
+
+      $("#see-month-sales-by-year").on("click", function() {
+
+          let _year = $("#year_list_for_month_sales").val();
+          let articles = $("#select-articles-for-month").val();
+          $.ajax({
+              type: "POST",
+              url: "/search-by-year-for-month-sales/",
+              method: "POST",
+              data: {filtered_articles: JSON.stringify(articles), year: _year, csrfmiddlewaretoken: $("#csrf-token").val()},
+              beforeSend: function () {
+              },
+              success: function (response) {
+                  const result = JSON.parse(response);
+                  if (result.length == 0) {
+                    alert("No result!!!");
+                    return;
+                  }
+
+                  let discount = new Array();
+                  let labels = new Array();
+                  for (let i = 0 ; i < result.length ; i ++) {
+                      labels.push(result[i].month_number)
+                      discount.push(result[i].total_discount.toFixed(2));
+                  }
+                  orderChart_month.data.datasets[0].data = discount;
+                  orderChart_month.data.labels = labels;
+                  orderChart_month.update();
+              },
+              error: function () {
+                  alert("Error! Please try again")
+              }
+          });
+      });
+
+      $("#see-day-sales-by-year-month").on("click", function() {
+
+          let _year_month = $("#day-sales-by-year-month").val();
+          let articles = $("#select-articles-for-day").val();
+          let total_revenue_day = 0;
+          $.ajax({
+              type: "POST",
+              url: "/search-by-monthyear-for-day-sales/",
+              method: "POST",
+              data: {filtered_articles: JSON.stringify(articles), mon_year: _year_month, csrfmiddlewaretoken: $("#csrf-token").val()},
+              beforeSend: function () {
+              },
+              success: function (response) {
+                  const result = JSON.parse(response);
+                  if (result.length == 0) {
+                    alert("No result!!!");
+                    return;
+                  }
+
+                  let discount = new Array(result.day_numbers).fill(0);
+                  let labels = new Array(result.day_numbers).fill(0);
+                  for (let k = 1 ; k <= result.day_numbers ; k ++) {
+                    labels[k-1]=k
+                  }
+                  for (let i = 0 ; i < result.reports.length ; i ++) {
+                      for (let j = 1 ; j <= result.day_numbers ; j ++) {
+                        if (result.reports[i].day_number == j) {
+                          discount[j-1]=result.reports[i].total_discount.toFixed(2);
+                          total_revenue_day += parseFloat(result.reports[i].total_discount.toFixed(2));
+                        }
+                      }
+                  }
+                  dailySalesChart.update({labels: labels, series: [discount]})
+                  $(".total-revenue-day").text('€' + total_revenue_day.toFixed(2));
+                  // ordersChart_day.data.datasets[0].data = discount;
+                  // ordersChart_day.update();
+              },
+              error: function () {
+                  alert("Error! Please try again")
+              }
+          });
+      });
+</script>
+{% endblock js %}

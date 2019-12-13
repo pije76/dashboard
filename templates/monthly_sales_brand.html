@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row mt-5">
+    <div class="col-xl-12 mb-5 mb-xl-0">
+        <div class="card bg-gradient-neutral shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col-sm-8">
+                        <h2 class="mb-0">Material Cost Analysis - Brand</h2>
+                    </div>
+                    <div class="col-sm-2">
+                      <input type="text" id="daterange" class="form-control" value={{cur_mon_year}} style="text-align: center" />
+                    </div>
+                    <div class="col-sm-2">
+                        <a class="btn btn-sm btn-primary" id="see" style="color: white;">See all</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+              <table id="monthly-sales-table" class="table table-striped table-bordered dt-responsive nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Units</th>
+                        <th>Total material cost</th>
+                        <th>Revenue</th>
+                        <th>Gross Margin</th>
+                        <th>Material cost proportion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  {% for info in monthly_sales_info %}
+                    <tr>
+                        <td>{{ info.brand }}</td>
+                        <td>{{ info.units }}</td>
+                        <td>{{ info.total_material_cost_of_brand }}</td>
+                        <td>{{ info.umsatz }}</td>
+                        <td>{{ info.materialquoten }}</td>
+                        <td>{{ info.anteil }}</td>
+                    </tr>
+                  {% endfor %}
+                    <tr>
+                      <td> - Total - </td>
+                      <td>{{ total_units }}</td>
+                      <td>{{ total_material_cost }}</td>
+                      <td>{{ total_umsatz }}</td>
+                      <td>{{ total_anteil }}</td>
+                      <td>{{ total_material_quoten }}</td>
+                    </tr>
+                </tbody>
+              </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-5">
+    <div class="col-xl-12 mb-5 mb-xl-0">
+        <div class="card bg-gradient-neutral shadow">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col-sm-6">
+                        <h6 class="text-uppercase text-light ls-1 mb-1">Charts</h6>
+                        <h2 class="text-white mb-0">Total Sales/Revenue per day</h2>
+                    </div>
+                    <div class="col-sm-4">
+                        <select class="selectpicker" id="select-shopviews" multiple data-live-search="true">
+                            {% for shopview in shopviews %}
+                                <option value='{{ shopview.shop_view }}'>{{ shopview.shop_view }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <a class="btn btn-sm btn-primary" id="filter" style="color: white;">Filter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                  <!-- Chart -->
+                  <div class="chart">
+                    <canvas id="chart-shopview-materialcost" class="chart-canvas"></canvas>
+                  </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block js %}
+
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.bootstrap4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.print.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.colVis.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.2.3/js/responsive.bootstrap4.min.js"></script>
+  <script src="{% static 'js/charts.js' %}"></script>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    var shopview_material = {{ shopview_material|safe }};
+    var shopviews = new Array();
+    var material_cost = new Array();
+    var chart_shopview_materialcost;
+    shopview_material.forEach(arr => {
+        shopviews.push(arr.shopview);
+        material_cost.push(arr.material.toFixed(2));
+    });
+
+    $('.selectpicker').selectpicker();
+
+    var monthNames = [
+        "jan", "feb", "mar",
+        "apr", "may", "jun", "jul",
+        "aug", "sep", "oct",
+        "nov", "dec"
+      ];
+    $('#daterange').datepicker({
+        format: "yyyy-mm",
+        viewMode: "months",
+        minViewMode: "months",
+        onClose: function(date, datepicker) {
+          alert(date);
+        }
+      });
+
+    var SalesChart = (function() {
+
+        //
+        // Variables
+        //
+
+        var $chart = $('#chart-shopview-materialcost');
+        var $ordersSelect = $('[name="ordersSelect"]');
+
+
+        //
+        // Methods
+        //
+
+        // Init chart
+        function initChart($chart) {
+
+          // Create chart
+          var options = {
+      			tooltips: {
+      				mode: 'index',
+      				intersect: false
+      			},
+      			responsive: true,
+      			scales: {
+      				xAxes: [{
+      					stacked: true,
+      				}],
+      				yAxes: [{
+      					stacked: true
+      				}]
+      			}
+      		}
+
+          chart_shopview_materialcost = new Chart($chart, {
+            type: 'bar',
+            options: options,
+            data: {
+              labels: shopviews,
+              datasets: [{
+                backgroundColor: Charts.colors.theme['danger'],
+                label: 'Material Cost',
+                data: material_cost,
+              }]
+            }
+          });
+
+          // Save to jQuery object
+          $chart.data('chart', chart_shopview_materialcost);
+        }
+
+
+        // Init chart
+        if ($chart.length) {
+          initChart($chart);
+        }
+
+      })();
+
+    var table = $('#monthly-sales-table').DataTable( {
+          lengthChange: false,
+          buttons: [ 'copy', 'excel', 'csv', 'pdf', 'colvis', 'pageLength' ],
+          order: [[0, 'desc']]
+      } );
+
+    table.buttons().container()
+        .appendTo( '#monthly-sales-table_wrapper .col-md-6:eq(0)' );
+
+    $('#see').on('click', function() {
+      mon_year = $("#daterange").val();
+      month_num = mon_year.slice(-2);
+      month_num = monthNames[parseInt(month_num) - 1];
+      mon_year = mon_year.slice(0, -2) + month_num;
+      window.location.href = '/monthly-sales-brand?mon_year=' + mon_year;
+    });
+
+    $("#filter").on('click', function() {
+      var shopviews = $("#select-shopviews").val();
+      console.log(shopviews);
+      mon_year = $("#daterange").val();
+      month_num = mon_year.slice(-2);
+      month_num = monthNames[parseInt(month_num) - 1];
+      mon_year = mon_year.slice(0, -2) + month_num;
+      $.ajax({
+          type: "POST",
+          url: "/materialcost-by-shopview/",
+          method: "POST",
+          data: {filtered_shopviews: JSON.stringify(shopviews), mon_year: mon_year, csrfmiddlewaretoken: $("#csrf-token").val()},
+          beforeSend: function () {
+          },
+          success: function (response) {
+              const result = JSON.parse(response);
+              if (result.length == 0) {
+                alert("No result!!!");
+                return;
+              }
+
+              let material_cost = new Array();
+              let shopviews = new Array();
+              for (let i = 0 ; i < result.length ; i ++) {
+                    material_cost.push(result[i].material_cost.toFixed(2));
+                    shopviews.push(result[i].shopview);
+              }
+              chart_shopview_materialcost.data.datasets[0].data = material_cost;
+              chart_shopview_materialcost.data.labels = shopviews;
+              chart_shopview_materialcost.update();
+          },
+          error: function () {
+              alert("Error! Please try again")
+          }
+      });
+    });
+
+  });
+</script>
+{% endblock js %}
