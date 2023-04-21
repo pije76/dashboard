@@ -4,6 +4,6 @@ pandas==0.25.2
 python-dateutil==2.8.0
 pytz==2019.3
 six==1.12.0
-sqlparse==0.3.0
+sqlparse==0.4.4
 xlrd==1.2.0
 psycopg2==2.8.4
